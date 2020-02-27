@@ -12,7 +12,7 @@ from mmdet.utils import print_log
 from .custom import CustomDataset
 from .registry import DATASETS
 from .LVIS_utils import LVIS_CLASSES
-
+from lvis import LVIS, LVISResults, LVISEval, LVISEvalPerCat
 
 @DATASETS.register_module
 class LVISDataset(CustomDataset):
@@ -339,6 +339,21 @@ class LVISDataset(CustomDataset):
                     logger=logger,
                     level=logging.ERROR)
                 break
+
+            if metric == 'segm':
+                # run lvis evaluation
+                eval_results['lvis'] = {}
+                lvis_eval = LVISEval(cocoGt, result_files[metric], iou_type)
+                lvis_eval.run()
+                print(iou_type)
+                lvis_eval.print_results()
+                keys = lvis_eval.get_results().keys()
+                for k in keys:
+                    eval_results['lvis'][iou_type + k] = lvis_eval.get_results()[k]
+                save_path = '{}.{}.json'.format(outfile_prefix, 'lvis')
+                lvis_eval_percat = LVISEvalPerCat(cocoGt, result_files[metric], iou_type, save_path)
+                lvis_eval_percat.run()
+                lvis_eval_percat.print_results()
 
             iou_type = 'bbox' if metric == 'proposal' else metric
             cocoEval = COCOeval(cocoGt, cocoDt, iou_type)
