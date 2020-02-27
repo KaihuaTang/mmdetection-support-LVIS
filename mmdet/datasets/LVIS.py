@@ -342,6 +342,7 @@ class LVISDataset(CustomDataset):
 
             if metric == 'segm':
                 # run lvis evaluation
+                print('lvis evaluation')
                 eval_results['lvis'] = {}
                 lvis_eval = LVISEval(cocoGt, result_files[metric], iou_type)
                 lvis_eval.run()
