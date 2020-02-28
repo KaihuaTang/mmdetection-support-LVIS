@@ -98,7 +98,8 @@ class LVISDataset(CustomDataset):
             labels=gt_labels,
             bboxes_ignore=gt_bboxes_ignore,
             masks=gt_masks_ann,
-            seg_map=seg_map)
+            seg_map=seg_map,
+            iscrowd=0,)
 
         return ann
 
@@ -351,7 +352,7 @@ class LVISDataset(CustomDataset):
                 keys = lvis_eval.get_results().keys()
                 for k in keys:
                     eval_results['lvis'][iou_type + k] = lvis_eval.get_results()[k]
-                save_path = '{}.{}.json'.format(outfile_prefix, 'lvis')
+                save_path = '{}.{}.json'.format(jsonfile_prefix, 'lvis')
                 lvis_eval_percat = LVISEvalPerCat(cocoGt, result_files[metric], iou_type, save_path)
                 lvis_eval_percat.run()
                 lvis_eval_percat.print_results()
