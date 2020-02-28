@@ -29,7 +29,7 @@ def get_root_logger(log_file=None, log_level=logging.INFO):
     else:
         logger.setLevel(log_level)
     # if the logger has been initialized, just return it
-    if (logger.handlers) > 0:
+    if len(logger.handlers) > 0:
         print(logger.handlers)
         return logger
 
