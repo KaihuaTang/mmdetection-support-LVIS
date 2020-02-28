@@ -29,7 +29,8 @@ def get_root_logger(log_file=None, log_level=logging.INFO):
     else:
         logger.setLevel(log_level)
     # if the logger has been initialized, just return it
-    if logger.hasHandlers():
+    if (logger.handlers) > 0:
+        print(logger.handlers)
         return logger
 
     format_str = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
