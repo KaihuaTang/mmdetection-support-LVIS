@@ -194,9 +194,9 @@ test_cfg = dict(
         nms_thr=0.7,
         min_bbox_size=0),
     rcnn=dict(
-        score_thr=0.001,
+        score_thr=0.00001,
         nms=dict(type='nms', iou_thr=0.5),
-        max_per_img=100,
+        max_per_img=300,
         mask_thr_binary=0.5))
 # dataset settings
 dataset_type = 'LVISDataset'
