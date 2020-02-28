@@ -1,5 +1,7 @@
 import logging
 import os.path as osp
+import os
+import errno
 import tempfile
 
 import mmcv
@@ -14,10 +16,16 @@ from .registry import DATASETS
 from .LVIS_utils import LVIS_CLASSES
 from lvis import LVIS, LVISResults, LVISEval, LVISEvalPerCat
 
+def mkdir(path):
+    try:
+        os.makedirs(path)
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            raise
+
 @DATASETS.register_module
 class LVISDataset(CustomDataset):
     CLASSES = LVIS_CLASSES
-
     def load_annotations(self, ann_file):
         self.coco = COCO(ann_file)
         # add iscrowd
@@ -25,6 +33,8 @@ class LVISDataset(CustomDataset):
             ann['iscrowd'] = 0
         # add ann_file
         self.ann_file_path = ann_file
+        # add output count
+        self.OUTPUT_COUNT = 0
         self.cat_ids = self.coco.getCatIds()
         self.cat2label = {
             cat_id: i + 1
@@ -357,7 +367,10 @@ class LVISDataset(CustomDataset):
                 keys = lvis_eval.get_results().keys()
                 for k in keys:
                     eval_results['lvis'][iou_type + k] = lvis_eval.get_results()[k]
-                save_path = '{}.{}.json'.format(jsonfile_prefix, 'lvis')
+                tmp_dir = tempfile.TemporaryDirectory()
+                save_path = osp.join(tmp_dir.name, 'results_{}'.format(self.OUTPUT_COUNT))
+                self.OUTPUT_COUNT += 1
+                mkdir(save_path) 
                 lvis_eval_percat = LVISEvalPerCat(self.ann_file_path, result_files[metric], iou_type, save_path)
                 lvis_eval_percat.run()
                 lvis_eval_percat.print_results()
