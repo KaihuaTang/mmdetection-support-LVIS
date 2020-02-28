@@ -281,12 +281,10 @@ class LVISDataset(CustomDataset):
             format(len(results), len(self)))
 
         if jsonfile_prefix is None:
-            tmp_dir = tempfile.TemporaryDirectory()
-            jsonfile_prefix = osp.join(tmp_dir.name, 'results')
-        else:
-            tmp_dir = None
+            jsonfile_prefix = osp.join('./work_dirs', 'tmp')
+            mkdir(jsonfile_prefix)
         result_files = self.results2json(results, jsonfile_prefix)
-        return result_files, tmp_dir
+        return result_files
 
     def evaluate(self,
                  results,
@@ -324,7 +322,7 @@ class LVISDataset(CustomDataset):
             if metric not in allowed_metrics:
                 raise KeyError('metric {} is not supported'.format(metric))
 
-        result_files, tmp_dir = self.format_results(results, jsonfile_prefix)
+        result_files = self.format_results(results, jsonfile_prefix)
 
         eval_results = {}
         cocoGt = self.coco
@@ -367,8 +365,7 @@ class LVISDataset(CustomDataset):
                 keys = lvis_eval.get_results().keys()
                 for k in keys:
                     eval_results['lvis'][iou_type + k] = lvis_eval.get_results()[k]
-                tmp_dir = tempfile.TemporaryDirectory()
-                save_path = osp.join(tmp_dir.name, 'results_{}'.format(self.OUTPUT_COUNT))
+                save_path = osp.join('./work_dirs', 'results_{}'.format(self.OUTPUT_COUNT))
                 self.OUTPUT_COUNT += 1
                 mkdir(save_path) 
                 lvis_eval_percat = LVISEvalPerCat(self.ann_file_path, result_files[metric], iou_type, save_path)
@@ -407,6 +404,4 @@ class LVISDataset(CustomDataset):
                 eval_results['{}_mAP_copypaste'.format(metric)] = (
                     '{ap[0]:.3f} {ap[1]:.3f} {ap[2]:.3f} {ap[3]:.3f} '
                     '{ap[4]:.3f} {ap[5]:.3f}').format(ap=cocoEval.stats[:6])
-        if tmp_dir is not None:
-            tmp_dir.cleanup()
         return eval_results
