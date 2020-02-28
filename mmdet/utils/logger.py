@@ -22,14 +22,19 @@ def get_root_logger(log_file=None, log_level=logging.INFO):
         logging.Logger: The root logger.
     """
     logger = logging.getLogger(__name__.split('.')[0])  # i.e., mmdet
-    logger.setLevel(log_level)
+    
+    rank, _ = get_dist_info()
+    if rank != 0:
+        logger.setLevel('ERROR')
+    else:
+        logger.setLevel(log_level)
     # if the logger has been initialized, just return it
     if logger.hasHandlers():
         return logger
 
     format_str = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     logging.basicConfig(format=format_str, level=log_level)
-    rank, _ = get_dist_info()
+    
     if rank != 0:
         logger.setLevel('ERROR')
     elif log_file is not None:

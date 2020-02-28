@@ -242,12 +242,12 @@ data = dict(
         pipeline=train_pipeline),
     val=dict(
         type=dataset_type,
-        ann_file=data_root + 'lvis_v0.5_val.json',
+        ann_file=data_root + 'lvis_v0.5_val_step.json',
         img_prefix=data_root + 'images/val2017/',
         pipeline=test_pipeline),
     test=dict(
         type=dataset_type,
-        ann_file=data_root + 'lvis_v0.5_val.json',
+        ann_file=data_root + 'lvis_v0.5_val_step.json',
         img_prefix=data_root + 'images/val2017/',
         pipeline=test_pipeline))
 evaluation = dict(interval=1, metric=['bbox', 'segm'])
