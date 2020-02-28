@@ -358,7 +358,7 @@ class LVISDataset(CustomDataset):
                 for k in keys:
                     eval_results['lvis'][iou_type + k] = lvis_eval.get_results()[k]
                 save_path = '{}.{}.json'.format(jsonfile_prefix, 'lvis')
-                lvis_eval_percat = LVISEvalPerCat(cocoGt, result_files[metric], iou_type, save_path)
+                lvis_eval_percat = LVISEvalPerCat(self.ann_file_path, result_files[metric], iou_type, save_path)
                 lvis_eval_percat.run()
                 lvis_eval_percat.print_results()
 
