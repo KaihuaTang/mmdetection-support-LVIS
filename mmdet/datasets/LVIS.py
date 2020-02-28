@@ -20,6 +20,11 @@ class LVISDataset(CustomDataset):
 
     def load_annotations(self, ann_file):
         self.coco = COCO(ann_file)
+        # add iscrowd
+        for ann in self.coco.dataset['annotations']:
+            ann['iscrowd'] = 0
+        # add ann_file
+        self.ann_file_path = ann_file
         self.cat_ids = self.coco.getCatIds()
         self.cat2label = {
             cat_id: i + 1
@@ -345,7 +350,7 @@ class LVISDataset(CustomDataset):
                 # run lvis evaluation
                 print('lvis evaluation')
                 eval_results['lvis'] = {}
-                lvis_eval = LVISEval(cocoGt, result_files[metric], iou_type)
+                lvis_eval = LVISEval(self.ann_file_path, result_files[metric], iou_type)
                 lvis_eval.run()
                 print(iou_type)
                 lvis_eval.print_results()

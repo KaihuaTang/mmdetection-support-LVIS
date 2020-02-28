@@ -22,6 +22,7 @@ def get_root_logger(log_file=None, log_level=logging.INFO):
         logging.Logger: The root logger.
     """
     logger = logging.getLogger(__name__.split('.')[0])  # i.e., mmdet
+    logger.setLevel(log_level)
     # if the logger has been initialized, just return it
     if logger.hasHandlers():
         return logger
