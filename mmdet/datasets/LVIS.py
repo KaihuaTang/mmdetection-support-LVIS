@@ -359,6 +359,8 @@ class LVISDataset(CustomDataset):
                 print('lvis evaluation')
                 eval_results['lvis'] = {}
                 lvis_eval = LVISEval(self.ann_file_path, result_files[metric], iou_type)
+                lvis_eval.params.use_cats = 0
+                lvis_eval.params.max_dets = 300
                 lvis_eval.run()
                 print(iou_type)
                 lvis_eval.print_results()
@@ -389,6 +391,8 @@ class LVISDataset(CustomDataset):
                     val = float('{:.3f}'.format(cocoEval.stats[i + 6]))
                     eval_results[item] = val
             else:
+                cocoEval.params.useCats = 0
+                cocoEval.params.maxDets = list(proposal_nums)
                 cocoEval.evaluate()
                 cocoEval.accumulate()
                 cocoEval.summarize()
