@@ -365,7 +365,7 @@ class LVISDataset(CustomDataset):
             keys = lvis_eval.get_results().keys()
             for k in keys:
                 eval_results['lvis'][iou_type + k] = lvis_eval.get_results()[k]
-            save_path = osp.join('./work_dirs', 'results_{}_{}'.format(metric, self.OUTPUT_COUNT))
+            save_path = osp.join('./work_dirs', 'results_{}_{}'.format(self.OUTPUT_COUNT, metric))
             mkdir(save_path) 
             lvis_eval_percat = LVISEvalPerCat(self.ann_file_path, result_files[metric], iou_type, save_path)
             lvis_eval_percat.run()
