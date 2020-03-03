@@ -369,7 +369,7 @@ class LVISDataset(CustomDataset):
             mkdir(save_path) 
             lvis_eval_percat = LVISEvalPerCat(self.ann_file_path, result_files[metric], iou_type, save_path)
             lvis_eval_percat.run()
-            #lvis_eval_percat.print_results()
+            lvis_eval_percat.print_results()
 
         self.OUTPUT_COUNT += 1
 
