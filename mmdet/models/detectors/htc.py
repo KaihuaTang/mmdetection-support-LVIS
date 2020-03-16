@@ -215,7 +215,7 @@ class HybridTaskCascade(CascadeRCNN):
                       proposals=None):
 
         #####################################################
-        # 1. change train/test random_flip = 0.0,    epoch = 1
+        # 1. change train/test random_flip = 0.0,    epoch = 1,    change test date to train set
         # 2. train -> save gt box
 
         self.SAVE_GT_BOX = True
