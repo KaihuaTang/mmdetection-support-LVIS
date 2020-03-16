@@ -8,6 +8,16 @@ from .. import builder
 from ..registry import DETECTORS
 from .cascade_rcnn import CascadeRCNN
 
+import os
+import errno
+
+def mkdir(path):
+    try:
+        os.makedirs(path)
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            raise
+
 
 @DETECTORS.register_module
 class HybridTaskCascade(CascadeRCNN):
@@ -203,6 +213,28 @@ class HybridTaskCascade(CascadeRCNN):
                       gt_masks=None,
                       gt_semantic_seg=None,
                       proposals=None):
+
+        ###################
+        # 1. change train/test random_flip = 0.0
+        # 2. train -> save gt box
+        # 3. test  -> use gt box to extract gt_dist
+
+        SAVE_GT_BOX = True
+        SAVE_PATH = '/data1/lvis_test/'
+
+        # create folder if not exist
+        if not os.path.exists(SAVE_PATH):
+            mkdir(SAVE_PATH)
+
+        # save each gt box info
+        # meta_keys=('filename', 'ori_shape', 'img_shape', 'pad_shape', 'scale_factor', 'flip', 'img_norm_cfg')
+        if SAVE_GT_BOX:
+            for meta, gt_bx in zip(img_meta, gt_bboxes):
+                file_name = meta['filename'].split('/')[-1].split('.')[0]
+                output_file = SAVE_PATH + file_name
+                output_dict = {'gt_bbox': gt_bx.cpu()}
+                torch.save(output_dict, output_file)
+
         x = self.extract_feat(img)
 
         losses = dict()
