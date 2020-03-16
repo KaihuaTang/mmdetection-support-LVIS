@@ -74,7 +74,10 @@ class HybridTaskCascade(CascadeRCNN):
             bbox_feats += bbox_semantic_feat
 
         cls_score, bbox_pred = bbox_head(bbox_feats)
-
+        ##############################################################
+        if self.SAVE_LOGITS:
+            self.output_logits_dict[stage] = cls_score.split(self.gt_length, dim=0)
+        ##############################################################
         bbox_targets = bbox_head.get_target(sampling_results, gt_bboxes,
                                             gt_labels, rcnn_train_cfg)
         loss_bbox = bbox_head.loss(cls_score, bbox_pred, *bbox_targets)
@@ -215,11 +218,12 @@ class HybridTaskCascade(CascadeRCNN):
                       proposals=None):
 
         #####################################################
-        # 1. change train/test random_flip = 0.0, change test date to train set
+        # 1. change train/test random_flip = 0.0,    epoch = 1,    change test date to train set
         # 2. train -> save gt box
         # 3. test  -> use gt box to extract gt_dist
 
-        SAVE_GT_BOX = True
+        self.SAVE_GT_BOX = True
+        self.SAVE_LOGITS = True
         SAVE_PATH = '/data1/lvis_test/'
 
         # create folder if not exist
@@ -229,13 +233,13 @@ class HybridTaskCascade(CascadeRCNN):
         # save each gt box info
         # meta_keys=('filename', 'ori_shape', 'img_shape', 'pad_shape', 'scale_factor', 'flip', 'img_norm_cfg')
         # coco train/val/test size (118287, 5000, 40670)
-        if SAVE_GT_BOX:
+        if self.SAVE_GT_BOX:
             for meta, gt_bx in zip(img_meta, gt_bboxes):
                 file_name = meta['filename'].split('/')[-1].split('.')[0]
                 output_file = SAVE_PATH + file_name
                 output_dict = {'gt_bbox': gt_bx.cpu()}
-                torch.save(output_dict, output_file)
-        
+                torch.save(output_dict, output_file)            
+
         ######################################################
 
         x = self.extract_feat(img)
@@ -257,6 +261,22 @@ class HybridTaskCascade(CascadeRCNN):
             proposal_list = self.rpn_head.get_bboxes(*proposal_inputs)
         else:
             proposal_list = proposals
+
+
+        ######################################################
+        if self.SAVE_LOGITS:
+            self.output_logits_dict = {}
+            self.gt_length = []
+            gt_proposals = []
+            for meta, prop in zip(img_meta, proposal_list):
+                file_name = meta['filename'].split('/')[-1].split('.')[0]
+                gt_prop = torch.load(SAVE_PATH + file_name)['gt_bbox'].to(prop.device)
+                gt_proposals.append(gt_prop)
+                self.gt_length.append(int(gt_prop.shape[0]))
+
+        proposal_list = gt_proposals
+        #######################################################
+
 
         # semantic segmentation part
         # 2 outputs: segmentation prediction and embedded features
@@ -339,6 +359,17 @@ class HybridTaskCascade(CascadeRCNN):
                 with torch.no_grad():
                     proposal_list = self.bbox_head[i].refine_bboxes(
                         rois, roi_labels, bbox_pred, pos_is_gts, img_meta)
+
+        #####################################################
+        if self.SAVE_LOGITS:
+            for i, meta in enumerate(img_meta):
+                file_name = meta['filename'].split('/')[-1].split('.')[0]
+                output_dict = {}
+                for key, val in self.output_logits_dict.items():
+                    output_dict[key] = val[i]
+                output_file = SAVE_PATH + file_name + '.dist'
+                torch.save(output_dict, output_file)
+        #####################################################
 
         return losses
 
