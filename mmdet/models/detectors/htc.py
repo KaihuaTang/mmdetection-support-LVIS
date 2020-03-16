@@ -214,8 +214,8 @@ class HybridTaskCascade(CascadeRCNN):
                       gt_semantic_seg=None,
                       proposals=None):
 
-        ###################
-        # 1. change train/test random_flip = 0.0
+        #####################################################
+        # 1. change train/test random_flip = 0.0, change test date to train set
         # 2. train -> save gt box
         # 3. test  -> use gt box to extract gt_dist
 
@@ -228,12 +228,15 @@ class HybridTaskCascade(CascadeRCNN):
 
         # save each gt box info
         # meta_keys=('filename', 'ori_shape', 'img_shape', 'pad_shape', 'scale_factor', 'flip', 'img_norm_cfg')
+        # coco train/val/test size (118287, 5000, 40670)
         if SAVE_GT_BOX:
             for meta, gt_bx in zip(img_meta, gt_bboxes):
                 file_name = meta['filename'].split('/')[-1].split('.')[0]
                 output_file = SAVE_PATH + file_name
                 output_dict = {'gt_bbox': gt_bx.cpu()}
                 torch.save(output_dict, output_file)
+        
+        ######################################################
 
         x = self.extract_feat(img)
 
