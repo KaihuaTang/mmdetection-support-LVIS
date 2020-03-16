@@ -389,7 +389,7 @@ class HybridTaskCascade(CascadeRCNN):
                 i, x, rois, semantic_feat=semantic_feat)
             ##############################################################
             if self.SAVE_LOGITS:
-                self.output_logits_dict[stage] = cls_score.split(self.gt_length, dim=0)
+                self.output_logits_dict[i] = cls_score.split(self.gt_length, dim=0)
             ##############################################################
             ms_scores.append(cls_score)
 
