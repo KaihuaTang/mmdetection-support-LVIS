@@ -88,7 +88,7 @@ class HybridTaskCascade(CascadeRCNN):
             gt_len = [len(b) for b in gt_bboxes]
             gt_bbox_feats = bbox_roi_extractor(x[:bbox_roi_extractor.num_inputs],
                                         gt_rois)
-            gt_cls_score, _ = bbox_head(gt_bbox_feats)
+            gt_cls_score, _ = bbox_head(gt_bbox_feats, norm_on=True)
             self.pred_new_dist[stage] = gt_cls_score[:,1:self.PREV_DIM+1].split(gt_len, dim=0)
         #########################################################
 
@@ -147,7 +147,15 @@ class HybridTaskCascade(CascadeRCNN):
                 bbox_semantic_feat = F.adaptive_avg_pool2d(
                     bbox_semantic_feat, bbox_feats.shape[-2:])
             bbox_feats += bbox_semantic_feat
-        cls_score, bbox_pred = bbox_head(bbox_feats)
+       
+        ##############################################################
+        if self.SAVE_LOGITS:
+            cls_score, bbox_pred = bbox_head(bbox_feats, norm_on=True)
+            self.output_logits_dict[i] = cls_score.split(self.gt_length, dim=0)
+        else:
+            cls_score, bbox_pred = bbox_head(bbox_feats)
+        ##############################################################
+        
         self.num_dist_cls = cls_score.shape[-1]
         return cls_score, bbox_pred
 
@@ -445,10 +453,6 @@ class HybridTaskCascade(CascadeRCNN):
             bbox_head = self.bbox_head[i]
             cls_score, bbox_pred = self._bbox_forward_test(
                 i, x, rois, semantic_feat=semantic_feat)
-            ##############################################################
-            if self.SAVE_LOGITS:
-                self.output_logits_dict[i] = cls_score.split(self.gt_length, dim=0)
-            ##############################################################
             ms_scores.append(cls_score)
 
             if i < self.num_stages - 1:

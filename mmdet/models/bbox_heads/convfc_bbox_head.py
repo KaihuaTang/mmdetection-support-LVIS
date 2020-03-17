@@ -1,4 +1,5 @@
 import torch.nn as nn
+import torch.nn.functional as F
 
 from ..registry import HEADS
 from ..utils import ConvModule
@@ -74,7 +75,7 @@ class ConvFCBBoxHead(BBoxHead):
         self.relu = nn.ReLU(inplace=True)
         # reconstruct fc_cls and fc_reg since input channels are changed
         if self.with_cls:
-            self.fc_cls = nn.Linear(self.cls_last_dim, self.num_classes)
+            self.fc_cls = nn.Linear(self.cls_last_dim, self.num_classes, bias=False)
         if self.with_reg:
             out_dim_reg = (4 if self.reg_class_agnostic else 4 *
                            self.num_classes)
@@ -129,7 +130,7 @@ class ConvFCBBoxHead(BBoxHead):
                     nn.init.xavier_uniform_(m.weight)
                     nn.init.constant_(m.bias, 0)
 
-    def forward(self, x):
+    def forward(self, x, norm_on=False):
         # shared part
         if self.num_shared_convs > 0:
             for conv in self.shared_convs:
@@ -165,7 +166,12 @@ class ConvFCBBoxHead(BBoxHead):
         for fc in self.reg_fcs:
             x_reg = self.relu(fc(x_reg))
 
-        cls_score = self.fc_cls(x_cls) if self.with_cls else None
+        if norm_on:
+            norm_x_cls = F.normalize(x_cls, p=2, dim=-1, eps=1e-12)
+            norm_cls_weights = F.normalize(self.fc_cls.weight, p=2, dim=-1, eps=1e-12)
+            cls_score = torch.mm(norm_x_cls, norm_cls_weights.transpose(0, 1))
+        else:
+            cls_score = self.fc_cls(x_cls) if self.with_cls else None
         bbox_pred = self.fc_reg(x_reg) if self.with_reg else None
         return cls_score, bbox_pred
 
