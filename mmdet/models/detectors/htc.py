@@ -241,7 +241,7 @@ class HybridTaskCascade(CascadeRCNN):
         # 1. change train/test random_flip = 0.0,    epoch = 1,    change test date to train set， frozen_stages = 3， rcnn.num = 200
         # 2. train -> save gt box
 
-        self.SAVE_GT_BOX = False
+        self.SAVE_GT_BOX = True
         self.LOAD_GT_DIST = False
         self.PREV_DIM = 270
 
@@ -407,7 +407,7 @@ class HybridTaskCascade(CascadeRCNN):
         ###############################################################
         # 1. change train/test random_flip = 0.0,    epoch = 1,    change test date to train set
         # 2. test  -> use gt box to extract gt_dist
-        self.SAVE_LOGITS = False
+        self.SAVE_LOGITS = True
 
         # create folder if not exist
         if not os.path.exists(SAVE_PATH):
