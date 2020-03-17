@@ -151,7 +151,7 @@ class HybridTaskCascade(CascadeRCNN):
         ##############################################################
         if self.SAVE_LOGITS:
             cls_score, bbox_pred = bbox_head(bbox_feats, norm_on=True)
-            self.output_logits_dict[i] = cls_score.split(self.gt_length, dim=0)
+            self.output_logits_dict[stage] = cls_score.split(self.gt_length, dim=0)
         else:
             cls_score, bbox_pred = bbox_head(bbox_feats)
         ##############################################################

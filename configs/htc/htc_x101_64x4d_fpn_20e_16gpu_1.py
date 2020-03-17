@@ -43,7 +43,7 @@ model = dict(
             in_channels=256,
             fc_out_channels=1024,
             roi_feat_size=7,
-            num_classes=1231,
+            num_classes=271,
             target_means=[0., 0., 0., 0.],
             target_stds=[0.1, 0.1, 0.2, 0.2],
             reg_class_agnostic=True,
@@ -56,7 +56,7 @@ model = dict(
             in_channels=256,
             fc_out_channels=1024,
             roi_feat_size=7,
-            num_classes=1231,
+            num_classes=271,
             target_means=[0., 0., 0., 0.],
             target_stds=[0.05, 0.05, 0.1, 0.1],
             reg_class_agnostic=True,
@@ -69,7 +69,7 @@ model = dict(
             in_channels=256,
             fc_out_channels=1024,
             roi_feat_size=7,
-            num_classes=1231,
+            num_classes=271,
             target_means=[0., 0., 0., 0.],
             target_stds=[0.033, 0.033, 0.067, 0.067],
             reg_class_agnostic=True,
@@ -89,7 +89,7 @@ model = dict(
             num_convs=4,
             in_channels=256,
             conv_out_channels=256,
-            num_classes=1231,
+            num_classes=271,
             loss_mask=dict(
                 type='CrossEntropyLoss', use_mask=True, loss_weight=1.0)),
         dict(
@@ -97,7 +97,7 @@ model = dict(
             num_convs=4,
             in_channels=256,
             conv_out_channels=256,
-            num_classes=1231,
+            num_classes=271,
             loss_mask=dict(
                 type='CrossEntropyLoss', use_mask=True, loss_weight=1.0)),
         dict(
@@ -105,7 +105,7 @@ model = dict(
             num_convs=4,
             in_channels=256,
             conv_out_channels=256,
-            num_classes=1231,
+            num_classes=271,
             loss_mask=dict(
                 type='CrossEntropyLoss', use_mask=True, loss_weight=1.0))
     ],)
@@ -208,7 +208,7 @@ train_pipeline = [
     dict(
         type='LoadAnnotations', with_bbox=True, with_mask=True),
     dict(type='Resize', img_scale=(1333, 800), keep_ratio=True),
-    dict(type='RandomFlip', flip_ratio=0.5),
+    dict(type='RandomFlip', flip_ratio=0.0),
     dict(type='Normalize', **img_norm_cfg),
     dict(type='Pad', size_divisor=32),
     dict(type='SegRescale', scale_factor=1 / 8),
@@ -225,7 +225,7 @@ test_pipeline = [
         flip=False,
         transforms=[
             dict(type='Resize', keep_ratio=True),
-            dict(type='RandomFlip', flip_ratio=0.5),
+            dict(type='RandomFlip', flip_ratio=0.0),
             dict(type='Normalize', **img_norm_cfg),
             dict(type='Pad', size_divisor=32),
             dict(type='ImageToTensor', keys=['img']),
@@ -237,18 +237,18 @@ data = dict(
     workers_per_gpu=1,
     train=dict(
         type=dataset_type,
-        ann_file=data_root + 'lvis_v0.5_train.json',
+        ann_file=data_root + 'lvis_step1_320_sorted/lvis_v0.5_train_top590_resort.json',
         img_prefix=data_root + 'images/train2017/',
         pipeline=train_pipeline),
     val=dict(
         type=dataset_type,
-        ann_file=data_root + 'lvis_v0.5_val_step.json',
-        img_prefix=data_root + 'images/val2017/',
+        ann_file=data_root + 'lvis_step1_320_sorted/lvis_v0.5_train_top590_resort.json',
+        img_prefix=data_root + 'images/train2017/',
         pipeline=test_pipeline),
     test=dict(
         type=dataset_type,
-        ann_file=data_root + 'lvis_v0.5_val_step.json',
-        img_prefix=data_root + 'images/val2017/',
+        ann_file=data_root + 'lvis_step1_320_sorted/lvis_v0.5_train_top590_resort.json',
+        img_prefix=data_root + 'images/train2017/',
         pipeline=test_pipeline))
 evaluation = dict(interval=5, metric=['bbox', 'segm'])
 # optimizer
@@ -271,7 +271,7 @@ log_config = dict(
     ])
 # yapf:enable
 # runtime settings
-total_epochs = 20
+total_epochs = 21
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
 work_dir = './work_dirs/htc_x101_64x4d_fpn_20e'
