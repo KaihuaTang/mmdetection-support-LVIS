@@ -360,9 +360,13 @@ class HybridTaskCascade(CascadeRCNN):
             gt_proposals = []
             for meta, prop in zip(img_meta, proposal_list):
                 file_name = meta['filename'].split('/')[-1].split('.')[0]
-                gt_prop = torch.load(SAVE_PATH + file_name)['gt_bbox'].to(prop.device)
-                gt_proposals.append(gt_prop)
-                self.gt_length.append(int(gt_prop.shape[0]))
+                if os.path.exists(SAVE_PATH + file_name):
+                    gt_prop = torch.load(SAVE_PATH + file_name)['gt_bbox'].to(prop.device)
+                    gt_proposals.append(gt_prop)
+                    self.gt_length.append(int(gt_prop.shape[0]))
+                else:
+                    gt_proposals.append(torch.zeros(0,4).to(prop.device))
+                    self.gt_length.append(0)
 
             proposal_list = gt_proposals
         #######################################################
