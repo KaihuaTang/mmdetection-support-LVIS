@@ -126,6 +126,7 @@ def _dist_train(model,
             cfg.data.imgs_per_gpu,
             cfg.data.workers_per_gpu,
             dist=True,
+            shuffle=False,
             seed=cfg.seed) for ds in dataset
     ]
     # put model on gpus

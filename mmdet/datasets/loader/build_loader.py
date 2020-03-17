@@ -21,7 +21,7 @@ def build_dataloader(dataset,
                      workers_per_gpu,
                      num_gpus=1,
                      dist=True,
-                     shuffle=True,
+                     shuffle=False,
                      seed=None,
                      **kwargs):
     """Build PyTorch DataLoader.
@@ -52,6 +52,7 @@ def build_dataloader(dataset,
             sampler = DistributedGroupSampler(dataset, imgs_per_gpu,
                                               world_size, rank)
         else:
+            print('------------ Fixed Shuffle -------------')
             sampler = DistributedSampler(
                 dataset, world_size, rank, shuffle=False)
         batch_size = imgs_per_gpu
