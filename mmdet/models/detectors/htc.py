@@ -43,6 +43,7 @@ class HybridTaskCascade(CascadeRCNN):
         self.semantic_fusion = semantic_fusion
         self.interleaved = interleaved
         self.mask_info_flow = mask_info_flow
+        self.distill_loss = nn.MSELoss(reduction='sum')
 
     @property
     def with_semantic(self):
@@ -75,9 +76,21 @@ class HybridTaskCascade(CascadeRCNN):
             bbox_feats += bbox_semantic_feat
 
         cls_score, bbox_pred = bbox_head(bbox_feats)
+        self.num_dist_cls = cls_score.shape[-1]
         bbox_targets = bbox_head.get_target(sampling_results, gt_bboxes,
                                             gt_labels, rcnn_train_cfg)
         loss_bbox = bbox_head.loss(cls_score, bbox_pred, *bbox_targets)
+
+        #########################################################
+        if self.LOAD_GT_DIST:
+            gt_rois = bbox2roi(gt_bboxes)
+            gt_len = [len(b) for b in gt_bboxes]
+            gt_bbox_feats = bbox_roi_extractor(x[:bbox_roi_extractor.num_inputs],
+                                        gt_rois)
+            gt_cls_score, _ = bbox_head(bbox_feats)
+            self.pred_new_dist[stage] = gt_cls_score[:,:self.PREV_DIM].split(gt_len, dim=0)
+        #########################################################
+
         return loss_bbox, rois, bbox_targets, bbox_pred
 
     def _mask_forward_train(self,
@@ -134,6 +147,7 @@ class HybridTaskCascade(CascadeRCNN):
                     bbox_semantic_feat, bbox_feats.shape[-2:])
             bbox_feats += bbox_semantic_feat
         cls_score, bbox_pred = bbox_head(bbox_feats)
+        self.num_dist_cls = cls_score.shape[-1]
         return cls_score, bbox_pred
 
     def _mask_forward_test(self, stage, x, bboxes, semantic_feat=None):
@@ -218,7 +232,9 @@ class HybridTaskCascade(CascadeRCNN):
         # 1. change train/test random_flip = 0.0,    epoch = 1,    change test date to train set
         # 2. train -> save gt box
 
-        self.SAVE_GT_BOX = True
+        self.SAVE_GT_BOX = False
+        self.LOAD_GT_DIST = True
+        self.PREV_DIM = 270
 
         # create folder if not exist
         if not os.path.exists(SAVE_PATH):
@@ -234,6 +250,21 @@ class HybridTaskCascade(CascadeRCNN):
                 output_dict = {'gt_bbox': gt_bx.cpu()}
                 torch.save(output_dict, output_file)            
 
+
+        # load dist of gt boxes
+        if self.LOAD_GT_DIST:
+            self.pred_new_dist = {}
+            self.loaded_gt_dist = {}
+            self.is_empty = []
+            for meta, gt_bx in zip(img_meta, gt_bboxes):
+                file_name = meta['filename'].split('/')[-1].split('.')[0]
+                output_file = SAVE_PATH + file_name + '.dist'
+                if os.path.exists(output_file):
+                    self.loaded_gt_dist[file_name] = torch.load(output_file).to(gt_bx.device)
+                    self.is_empty.append(False)
+                else:
+                    self.loaded_gt_dist[file_name] = None
+                    self.is_empty.append(True)
         ######################################################
 
         x = self.extract_feat(img)
@@ -337,6 +368,25 @@ class HybridTaskCascade(CascadeRCNN):
                 with torch.no_grad():
                     proposal_list = self.bbox_head[i].refine_bboxes(
                         rois, roi_labels, bbox_pred, pos_is_gts, img_meta)
+
+        ##########################################
+        if self.LOAD_GT_DIST:
+            distilation_gt_dist = []
+            distilation_pd_dist = []
+            for i, meta in enumerate(img_meta):
+                file_name = meta['filename'].split('/')[-1].split('.')[0]
+                if self.is_empty[i]:
+                    continue
+                else:
+                    for s in range(self.num_stages):
+                        distilation_gt_dist.append(self.loaded_gt_dist[file_name][s])
+                        distilation_pd_dist.append(self.pred_new_dist[s][i])
+            distilation_gt_dist = torch.cat(distilation_gt_dist, dim=0)
+            distilation_pd_dist = torch.cat(distilation_pd_dist, dim=0)
+            distilation_gt_dist = distilation_gt_dist / (distilation_gt_dist.shape[0] + 1e-9)
+            distilation_pd_dist = distilation_pd_dist / (distilation_pd_dist.shape[0] + 1e-9)
+            losses['distill_loss'] = self.distill_loss(distilation_pd_dist, distilation_gt_dist)
+        ##########################################
 
         return losses
 
@@ -462,11 +512,13 @@ class HybridTaskCascade(CascadeRCNN):
             for i, (meta, empty) in enumerate(zip(img_meta, self.is_empty)):
                 file_name = meta['filename'].split('/')[-1].split('.')[0]
                 output_dict = {}
-                if not empty:
-                    for key, val in self.output_logits_dict.items():
-                        output_dict[key] = val[i]
-                    output_file = SAVE_PATH + file_name + '.dist'
-                    torch.save(output_dict, output_file)
+                for key, val in self.output_logits_dict.items():
+                    if not empty:
+                        output_dict[key] = val[i].cpu()
+                    else:
+                        output_dict[key] = torch.zeros(0, self.num_dist_cls)
+                output_file = SAVE_PATH + file_name + '.dist'
+                torch.save(output_dict, output_file)
         #####################################################
 
         return results
