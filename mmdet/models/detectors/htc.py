@@ -357,6 +357,7 @@ class HybridTaskCascade(CascadeRCNN):
         if self.SAVE_LOGITS:
             self.output_logits_dict = {}
             self.gt_length = []
+            self.is_empty = []
             gt_proposals = []
             for meta, prop in zip(img_meta, proposal_list):
                 file_name = meta['filename'].split('/')[-1].split('.')[0]
@@ -364,9 +365,11 @@ class HybridTaskCascade(CascadeRCNN):
                     gt_prop = torch.load(SAVE_PATH + file_name)['gt_bbox'].to(prop.device)
                     gt_proposals.append(gt_prop)
                     self.gt_length.append(int(gt_prop.shape[0]))
+                    self.is_empty.append(False)
                 else:
-                    gt_proposals.append(torch.zeros(0,4).to(prop.device))
-                    self.gt_length.append(0)
+                    gt_proposals.append(torch.zeros(1,4).to(prop.device))
+                    self.gt_length.append(1)
+                    self.is_empty.append(True)
 
             proposal_list = gt_proposals
         #######################################################
@@ -456,13 +459,14 @@ class HybridTaskCascade(CascadeRCNN):
 
         #####################################################
         if self.SAVE_LOGITS:
-            for i, meta in enumerate(img_meta):
+            for i, (meta, empty) in enumerate(zip(img_meta, self.is_empty)):
                 file_name = meta['filename'].split('/')[-1].split('.')[0]
                 output_dict = {}
-                for key, val in self.output_logits_dict.items():
-                    output_dict[key] = val[i]
-                output_file = SAVE_PATH + file_name + '.dist'
-                torch.save(output_dict, output_file)
+                if not empty:
+                    for key, val in self.output_logits_dict.items():
+                        output_dict[key] = val[i]
+                    output_file = SAVE_PATH + file_name + '.dist'
+                    torch.save(output_dict, output_file)
         #####################################################
 
         return results
