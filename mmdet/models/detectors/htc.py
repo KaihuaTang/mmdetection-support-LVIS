@@ -265,10 +265,10 @@ class HybridTaskCascade(CascadeRCNN):
             self.pred_new_dist = {}
             self.loaded_gt_dist = {}
             self.is_empty = []
-            for meta in img_meta:
+            for meta, gt_b in zip(img_meta, gt_bboxes):
                 file_name = meta['filename'].split('/')[-1].split('.')[0]
                 output_file = SAVE_PATH + file_name + '.dist'
-                if os.path.exists(output_file):
+                if os.path.exists(output_file) and (gt_b.shape[0] > 0):
                     self.loaded_gt_dist[file_name] = torch.load(output_file)
                     self.is_empty.append(False)
                 else:
