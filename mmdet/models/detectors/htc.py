@@ -390,11 +390,14 @@ class HybridTaskCascade(CascadeRCNN):
                     for s in range(self.num_stages):
                         distilation_gt_dist.append(self.loaded_gt_dist[file_name][s])
                         distilation_pd_dist.append(self.pred_new_dist[s][i])
-            distilation_pd_dist = torch.cat(distilation_pd_dist, dim=0)
-            distilation_gt_dist = torch.cat(distilation_gt_dist, dim=0)[:, 1:].to(distilation_pd_dist.device)
-            distilation_pd_dist = distilation_pd_dist / (distilation_pd_dist.shape[0] + 1e-9)
-            distilation_gt_dist = distilation_gt_dist / (distilation_gt_dist.shape[0] + 1e-9)
-            losses['distill_loss'] = self.distill_loss(distilation_pd_dist, distilation_gt_dist)
+            if len(distilation_gt_dist) > 0:
+                distilation_pd_dist = torch.cat(distilation_pd_dist, dim=0)
+                distilation_gt_dist = torch.cat(distilation_gt_dist, dim=0)[:, 1:].to(distilation_pd_dist.device)
+                distilation_pd_dist = distilation_pd_dist / (distilation_pd_dist.shape[0] + 1e-9)
+                distilation_gt_dist = distilation_gt_dist / (distilation_gt_dist.shape[0] + 1e-9)
+                losses['distill_loss'] = self.distill_loss(distilation_pd_dist, distilation_gt_dist)
+            else:
+                losses['distill_loss'] = torch.zeros([1]).to(x.device)
         ##########################################
 
         return losses
