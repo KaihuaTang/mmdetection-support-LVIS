@@ -1,4 +1,5 @@
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
 
 from mmdet.core import (bbox2result, bbox2roi, bbox_mapping, build_assigner,
@@ -87,8 +88,8 @@ class HybridTaskCascade(CascadeRCNN):
             gt_len = [len(b) for b in gt_bboxes]
             gt_bbox_feats = bbox_roi_extractor(x[:bbox_roi_extractor.num_inputs],
                                         gt_rois)
-            gt_cls_score, _ = bbox_head(bbox_feats)
-            self.pred_new_dist[stage] = gt_cls_score[:,:self.PREV_DIM].split(gt_len, dim=0)
+            gt_cls_score, _ = bbox_head(gt_bbox_feats)
+            self.pred_new_dist[stage] = gt_cls_score[:,1:self.PREV_DIM+1].split(gt_len, dim=0)
         #########################################################
 
         return loss_bbox, rois, bbox_targets, bbox_pred
@@ -256,11 +257,11 @@ class HybridTaskCascade(CascadeRCNN):
             self.pred_new_dist = {}
             self.loaded_gt_dist = {}
             self.is_empty = []
-            for meta, gt_bx in zip(img_meta, gt_bboxes):
+            for meta in img_meta:
                 file_name = meta['filename'].split('/')[-1].split('.')[0]
                 output_file = SAVE_PATH + file_name + '.dist'
                 if os.path.exists(output_file):
-                    self.loaded_gt_dist[file_name] = torch.load(output_file).to(gt_bx.device)
+                    self.loaded_gt_dist[file_name] = torch.load(output_file)
                     self.is_empty.append(False)
                 else:
                     self.loaded_gt_dist[file_name] = None
@@ -381,10 +382,10 @@ class HybridTaskCascade(CascadeRCNN):
                     for s in range(self.num_stages):
                         distilation_gt_dist.append(self.loaded_gt_dist[file_name][s])
                         distilation_pd_dist.append(self.pred_new_dist[s][i])
-            distilation_gt_dist = torch.cat(distilation_gt_dist, dim=0)
             distilation_pd_dist = torch.cat(distilation_pd_dist, dim=0)
-            distilation_gt_dist = distilation_gt_dist / (distilation_gt_dist.shape[0] + 1e-9)
+            distilation_gt_dist = torch.cat(distilation_gt_dist, dim=0)[:, 1:].to(distilation_pd_dist.device)
             distilation_pd_dist = distilation_pd_dist / (distilation_pd_dist.shape[0] + 1e-9)
+            distilation_gt_dist = distilation_gt_dist / (distilation_gt_dist.shape[0] + 1e-9)
             losses['distill_loss'] = self.distill_loss(distilation_pd_dist, distilation_gt_dist)
         ##########################################
 
