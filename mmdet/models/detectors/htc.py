@@ -397,7 +397,7 @@ class HybridTaskCascade(CascadeRCNN):
                 distilation_gt_dist = distilation_gt_dist / (distilation_gt_dist.shape[0] + 1e-9)
                 losses['distill_loss'] = self.distill_loss(distilation_pd_dist, distilation_gt_dist)
             else:
-                losses['distill_loss'] = torch.zeros([1]).to(x.device)
+                losses['distill_loss'] = torch.zeros([1]).to(x[0].device)
         ##########################################
 
         return losses
