@@ -3,9 +3,13 @@ import math
 
 import numpy as np
 import torch
+import json
 from mmcv.runner import get_dist_info
 from torch.utils.data import DistributedSampler as _DistributedSampler
 from torch.utils.data import Sampler
+
+
+INDICES_PATH = './data/LVIS/lvis_step1_320_sorted/lvis_indices_qry_step1_rand_balanced.json'
 
 
 class DistributedSampler(_DistributedSampler):
@@ -30,6 +34,24 @@ class DistributedSampler(_DistributedSampler):
         # subsample
         indices = indices[self.rank:self.total_size:self.num_replicas]
         assert len(indices) == self.num_samples
+
+        return iter(indices)
+
+
+
+class DistributedFixSampler(_DistributedSampler):
+
+    def __init__(self, dataset, num_replicas=None, rank=None):
+        super().__init__(dataset, num_replicas=num_replicas, rank=rank)
+
+    def __iter__(self):
+        all_indices = json.load(open(INDICES_PATH))
+        assert len(all_indices) == self.num_replicas
+        print(' --------------------- indices: ', max(max(all_indices)) + 1, ' in ', len(self.dataset), ' ------------------------')
+        assert max(max(all_indices)) + 1 <= len(self.dataset)
+
+        # subsample
+        indices = all_indices[self.rank]
 
         return iter(indices)
 

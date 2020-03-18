@@ -19,7 +19,7 @@ def mkdir(path):
         if e.errno != errno.EEXIST:
             raise
 
-SAVE_PATH = '/data1/lvis_test/'
+SAVE_PATH = '/data1/lvis_test1/'
 SAVE_GT_BOX = True
 SAVE_LOGITS = True
 LOAD_GT_DIST = False
