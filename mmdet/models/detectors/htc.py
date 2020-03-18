@@ -41,8 +41,9 @@ PREV_DIM = 270
 # 2.1 change num_cls, dataset_path, total_epochs, SAVE_LOGITS=True
 # 2.2 
 #
-# 3.1 change num_cls, dataset_path, total_epochs, lr_step, LOAD_GT_DIST=True, PREV_DIM
-# 
+# 3.1 update_checkpoint.py with padding weights
+# 3.2 change num_cls, dataset_path, total_epochs, lr_step, LOAD_GT_DIST=True, PREV_DIM
+# 3.2
 
 @DETECTORS.register_module
 class HybridTaskCascade(CascadeRCNN):
@@ -289,6 +290,7 @@ class HybridTaskCascade(CascadeRCNN):
 
 
         # load dist of gt boxes
+        select_class = None
         if LOAD_GT_DIST:
             self.pred_new_dist = {}
             self.is_empty = []
