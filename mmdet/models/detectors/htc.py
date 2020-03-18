@@ -20,6 +20,11 @@ def mkdir(path):
             raise
 
 SAVE_PATH = '/data1/lvis_test/'
+SAVE_GT_BOX = True
+SAVE_LOGITS = True
+LOAD_GT_DIST = False
+PREV_DIM = 270
+
 
 @DETECTORS.register_module
 class HybridTaskCascade(CascadeRCNN):
@@ -83,13 +88,13 @@ class HybridTaskCascade(CascadeRCNN):
         loss_bbox = bbox_head.loss(cls_score, bbox_pred, *bbox_targets)
 
         #########################################################
-        if self.LOAD_GT_DIST:
+        if LOAD_GT_DIST:
             gt_rois = bbox2roi(gt_bboxes)
             gt_len = [len(b) for b in gt_bboxes]
             gt_bbox_feats = bbox_roi_extractor(x[:bbox_roi_extractor.num_inputs],
                                         gt_rois)
             gt_cls_score, _ = bbox_head(gt_bbox_feats, norm_on=True)
-            self.pred_new_dist[stage] = gt_cls_score[:,1:self.PREV_DIM+1].split(gt_len, dim=0)
+            self.pred_new_dist[stage] = gt_cls_score[:,1:PREV_DIM+1].split(gt_len, dim=0)
         #########################################################
 
         return loss_bbox, rois, bbox_targets, bbox_pred
@@ -149,7 +154,7 @@ class HybridTaskCascade(CascadeRCNN):
             bbox_feats += bbox_semantic_feat
        
         ##############################################################
-        if self.SAVE_LOGITS:
+        if SAVE_LOGITS:
             cls_score, bbox_pred = bbox_head(bbox_feats, norm_on=True)
             self.output_logits_dict[stage] = cls_score.split(self.gt_length, dim=0)
         else:
@@ -241,10 +246,6 @@ class HybridTaskCascade(CascadeRCNN):
         # 1. change train/test random_flip = 0.0,    epoch = 1,    change test date to train set， frozen_stages = 3， rcnn.num = 200
         # 2. train -> save gt box
 
-        self.SAVE_GT_BOX = True
-        self.LOAD_GT_DIST = False
-        self.PREV_DIM = 270
-
         # create folder if not exist
         if not os.path.exists(SAVE_PATH):
             mkdir(SAVE_PATH)
@@ -252,7 +253,7 @@ class HybridTaskCascade(CascadeRCNN):
         # save each gt box info
         # meta_keys=('filename', 'ori_shape', 'img_shape', 'pad_shape', 'scale_factor', 'flip', 'img_norm_cfg')
         # coco train/val/test size (118287, 5000, 40670)
-        if self.SAVE_GT_BOX:
+        if SAVE_GT_BOX:
             for meta, gt_bx in zip(img_meta, gt_bboxes):
                 file_name = meta['filename'].split('/')[-1].split('.')[0]
                 output_file = SAVE_PATH + file_name
@@ -261,7 +262,7 @@ class HybridTaskCascade(CascadeRCNN):
 
 
         # load dist of gt boxes
-        if self.LOAD_GT_DIST:
+        if LOAD_GT_DIST:
             self.pred_new_dist = {}
             self.loaded_gt_dist = {}
             self.is_empty = []
@@ -379,7 +380,7 @@ class HybridTaskCascade(CascadeRCNN):
                         rois, roi_labels, bbox_pred, pos_is_gts, img_meta)
 
         ##########################################
-        if self.LOAD_GT_DIST:
+        if LOAD_GT_DIST:
             distilation_gt_dist = []
             distilation_pd_dist = []
             for i, meta in enumerate(img_meta):
@@ -395,7 +396,7 @@ class HybridTaskCascade(CascadeRCNN):
                 distilation_gt_dist = torch.cat(distilation_gt_dist, dim=0)[:, 1:].to(distilation_pd_dist.device)
                 distilation_pd_dist = distilation_pd_dist / (distilation_pd_dist.shape[0] + 1e-9)
                 distilation_gt_dist = distilation_gt_dist / (distilation_gt_dist.shape[0] + 1e-9)
-                losses['distill_loss'] = self.distill_loss(distilation_pd_dist, distilation_gt_dist)
+                losses['distill_loss'] = self.distill_loss(distilation_pd_dist, distilation_gt_dist) * self.num_stages
             else:
                 losses['distill_loss'] = torch.zeros([1]).to(x[0].device)
         ##########################################
@@ -410,13 +411,12 @@ class HybridTaskCascade(CascadeRCNN):
         ###############################################################
         # 1. change train/test random_flip = 0.0,    epoch = 1,    change test date to train set
         # 2. test  -> use gt box to extract gt_dist
-        self.SAVE_LOGITS = True
 
         # create folder if not exist
         if not os.path.exists(SAVE_PATH):
             mkdir(SAVE_PATH)
 
-        if self.SAVE_LOGITS:
+        if SAVE_LOGITS:
             self.output_logits_dict = {}
             self.gt_length = []
             self.is_empty = []
@@ -516,7 +516,7 @@ class HybridTaskCascade(CascadeRCNN):
             results = ms_bbox_result['ensemble']
 
         #####################################################
-        if self.SAVE_LOGITS:
+        if SAVE_LOGITS:
             for i, (meta, empty) in enumerate(zip(img_meta, self.is_empty)):
                 file_name = meta['filename'].split('/')[-1].split('.')[0]
                 output_dict = {}
