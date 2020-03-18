@@ -72,7 +72,9 @@ class CustomDataset(Dataset):
         # filter images too small
         if not test_mode:
             valid_inds = self._filter_imgs()
+            self.img_ids = [self.img_ids[i] for i in valid_inds]
             self.img_infos = [self.img_infos[i] for i in valid_inds]
+            assert len(self.img_ids) == len(self.img_infos)
             if self.proposals is not None:
                 self.proposals = [self.proposals[i] for i in valid_inds]
         # set group flag for the sampler

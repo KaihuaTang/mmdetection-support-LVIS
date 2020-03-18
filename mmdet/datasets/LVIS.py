@@ -40,7 +40,7 @@ class LVISDataset(CustomDataset):
             cat_id: i + 1
             for i, cat_id in enumerate(self.cat_ids)
         }
-        self.img_ids = self.coco.getImgIds()
+        self.img_ids = list(sorted(self.coco.getImgIds()))
         img_infos = []
         for i in self.img_ids:
             info = self.coco.loadImgs([i])[0]
@@ -49,7 +49,7 @@ class LVISDataset(CustomDataset):
         return img_infos
 
     def get_ann_info(self, idx):
-        img_id = self.img_infos[idx]['id']
+        img_id = self.img_ids[idx]
         ann_ids = self.coco.getAnnIds(imgIds=[img_id])
         ann_info = self.coco.loadAnns(ann_ids)
         return self._parse_ann_info(self.img_infos[idx], ann_info)
