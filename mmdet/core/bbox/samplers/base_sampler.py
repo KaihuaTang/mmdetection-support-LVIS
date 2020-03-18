@@ -1,12 +1,8 @@
 from abc import ABCMeta, abstractmethod
 
 import torch
-import json
-from mmcv.runner import get_dist_info
 
 from .sampling_result import SamplingResult
-
-CLASS_PATH = './data/LVIS/lvis_step1_320_sorted/lvis_classes_qry_step1_rand_balanced.json'
 
 class BaseSampler(metaclass=ABCMeta):
 
@@ -23,9 +19,6 @@ class BaseSampler(metaclass=ABCMeta):
         self.pos_sampler = self
         self.neg_sampler = self
 
-        rank, _ = get_dist_info()
-        self.class_idx = torch.LongTensor(json.load(open(CLASS_PATH))[rank]).to('cuda:{}'.format(rank))
-
     @abstractmethod
     def _sample_pos(self, assign_result, num_expected, **kwargs):
         pass
@@ -39,7 +32,7 @@ class BaseSampler(metaclass=ABCMeta):
                bboxes,
                gt_bboxes,
                gt_labels=None,
-               img_idx=None,
+               select_label=None,
                **kwargs):
         """Sample positive and negative bboxes.
 
@@ -83,8 +76,9 @@ class BaseSampler(metaclass=ABCMeta):
             gt_ones = bboxes.new_ones(gt_bboxes.shape[0], dtype=torch.uint8)
             gt_flags = torch.cat([gt_ones, gt_flags])
 
-        assert len(img_idx) == 1
-        print(img_idx)
+        if select_label is not None:
+            print(select_label)
+            print(gt_labels)
 
         num_expected_pos = int(self.num * self.pos_fraction)
         pos_inds = self.pos_sampler._sample_pos(

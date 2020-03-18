@@ -2,6 +2,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+import json
+from mmcv.runner import get_dist_info
+
 from mmdet.core import (bbox2result, bbox2roi, bbox_mapping, build_assigner,
                         build_sampler, merge_aug_bboxes, merge_aug_masks,
                         multiclass_nms)
@@ -19,6 +22,7 @@ def mkdir(path):
         if e.errno != errno.EEXIST:
             raise
 
+CLASS_PATH = './data/LVIS/lvis_step1_320_sorted/lvis_classes_qry_step1_rand_balanced.json'
 SAVE_PATH = '/data1/lvis_test1/'
 SAVE_GT_BOX = False    # change train/test random_flip = 0.0,    epoch = 1， frozen_stages = 3
 SAVE_LOGITS = False    # change train/test random_flip = 0.0,    epoch = 1,    change test date to train set， frozen_stages = 3
@@ -50,6 +54,10 @@ class HybridTaskCascade(CascadeRCNN):
         self.interleaved = interleaved
         self.mask_info_flow = mask_info_flow
         self.distill_loss = nn.MSELoss(reduction='sum')
+
+        rank, _ = get_dist_info()
+        self.class_idx = json.load(open(CLASS_PATH))[rank]
+        self.train_iter = 0
 
     @property
     def with_semantic(self):
@@ -277,6 +285,13 @@ class HybridTaskCascade(CascadeRCNN):
                 else:
                     self.loaded_gt_dist[file_name] = None
                     self.is_empty.append(True)
+
+            if len(self.img_idx) != 1:
+                print('------------ len(self.img_idx) != 1 -------------')
+            else:
+                select_class = self.class_idx[self.train_iter]
+                self.train_iter += 1
+
         ######################################################
 
         x = self.extract_feat(img)
@@ -331,7 +346,7 @@ class HybridTaskCascade(CascadeRCNN):
                     proposal_list[j],
                     gt_bboxes[j],
                     gt_labels[j],
-                    img_idx=self.img_idx,
+                    select_label=select_class,
                     feats=[lvl_feat[j][None] for lvl_feat in x])
                 sampling_results.append(sampling_result)
 

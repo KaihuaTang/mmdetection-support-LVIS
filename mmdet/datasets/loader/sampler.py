@@ -44,7 +44,7 @@ class DistributedFixSampler(_DistributedSampler):
     def __init__(self, dataset, num_replicas=None, rank=None):
         super().__init__(dataset, num_replicas=num_replicas, rank=rank)
         self.all_indices = json.load(open(INDICES_PATH))
-        assert len(self.all_indices) == self.num_replicas
+        #assert len(self.all_indices) == self.num_replicas
         print(' --------------------- indices: ', max(max(self.all_indices)) + 1, ' in ', len(self.dataset), ' ------------------------')
         assert max(max(self.all_indices)) + 1 <= len(self.dataset)
 
