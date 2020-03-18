@@ -43,7 +43,7 @@ PREV_DIM = 270
 #
 # 3.1 update_checkpoint.py
 # 3.2 merge_dist_files.py
-# 3.3 change num_cls, dataset_path, total_epochs, lr_step, LOAD_GT_DIST=True, PREV_DIM, shuffle=True, datasets/loader/sample.INDECES_PATHvim
+# 3.3 change num_cls, dataset_path, total_epochs, lr_step, LOAD_GT_DIST=True, PREV_DIM, shuffle=True, datasets/loader/sample.INDECES_PATH
 # 3.4 CUDA_VISIBLE_DEVICES=0,1,2,3 PORT=112233 ./tools/dist_train.sh configs/htc/htc_x101_64x4d_fpn_20e_16gpu_2.py 4 --validate --resume_from ./work_dirs/270_x64/epoch_20_pad.pth
 ##############################
 
@@ -111,7 +111,7 @@ class HybridTaskCascade(CascadeRCNN):
                     bbox_semantic_feat, bbox_feats.shape[-2:])
             bbox_feats += bbox_semantic_feat
 
-        cls_score, bbox_pred = bbox_head(bbox_feats)
+        cls_score, bbox_pred = bbox_head(bbox_feats, norm_on=True)
         self.num_dist_cls = cls_score.shape[-1]
         bbox_targets = bbox_head.get_target(sampling_results, gt_bboxes,
                                             gt_labels, rcnn_train_cfg)
@@ -188,7 +188,7 @@ class HybridTaskCascade(CascadeRCNN):
             cls_score, bbox_pred = bbox_head(bbox_feats, norm_on=True)
             self.output_logits_dict[stage] = cls_score.split(self.gt_length, dim=0)
         else:
-            cls_score, bbox_pred = bbox_head(bbox_feats)
+            cls_score, bbox_pred = bbox_head(bbox_feats, norm_on=True)
         ##############################################################
         
         self.num_dist_cls = cls_score.shape[-1]
