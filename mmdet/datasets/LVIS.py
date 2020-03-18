@@ -4,6 +4,7 @@ import os
 import errno
 import tempfile
 
+import torch
 import mmcv
 import numpy as np
 from pycocotools.coco import COCO
@@ -23,6 +24,8 @@ def mkdir(path):
         if e.errno != errno.EEXIST:
             raise
 
+CAT2LABEL_PATH = './cat2label.tmp'
+
 @DATASETS.register_module
 class LVISDataset(CustomDataset):
     CLASSES = LVIS_CLASSES
@@ -40,6 +43,7 @@ class LVISDataset(CustomDataset):
             cat_id: i + 1
             for i, cat_id in enumerate(self.cat_ids)
         }
+        torch.save(self.cat2label, CAT2LABEL_PATH)
         self.img_ids = list(sorted(self.coco.getImgIds()))
         img_infos = []
         for i in self.img_ids:

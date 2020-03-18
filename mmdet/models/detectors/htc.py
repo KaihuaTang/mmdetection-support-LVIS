@@ -22,6 +22,8 @@ def mkdir(path):
         if e.errno != errno.EEXIST:
             raise
 
+CAT2LABEL_PATH = './cat2label.tmp'
+
 CLASS_PATH = './data/LVIS/lvis_step1_320_sorted/lvis_classes_qry_step1_rand_balanced.json'
 SAVE_PATH = '/data1/lvis_test1/'
 SAVE_GT_BOX = False    # change train/test random_flip = 0.0,    epoch = 1， frozen_stages = 3
@@ -58,6 +60,7 @@ class HybridTaskCascade(CascadeRCNN):
         rank, _ = get_dist_info()
         self.class_idx = json.load(open(CLASS_PATH))[rank]
         self.train_iter = 0
+        self.cat2label = torch.load(CAT2LABEL_PATH)
 
     @property
     def with_semantic(self):
@@ -289,7 +292,7 @@ class HybridTaskCascade(CascadeRCNN):
             if len(self.img_idx) != 1:
                 print('------------ len(self.img_idx) != 1 -------------')
             else:
-                select_class = self.class_idx[self.train_iter]
+                select_class = self.cat2label[self.class_idx[self.train_iter]]
                 self.train_iter += 1
 
         ######################################################
