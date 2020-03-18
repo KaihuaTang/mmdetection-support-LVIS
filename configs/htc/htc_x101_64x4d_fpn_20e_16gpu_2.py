@@ -242,15 +242,15 @@ data = dict(
         pipeline=train_pipeline),
     val=dict(
         type=dataset_type,
-        ann_file=data_root + 'lvis_step1_320_sorted/lvis_v0.5_train_top590_resort.json',
-        img_prefix=data_root + 'images/train2017/',
+        ann_file=data_root + 'lvis_step1_320_sorted/lvis_v0.5_val_top590_resort.json',
+        img_prefix=data_root + 'images/val2017/',
         pipeline=test_pipeline),
     test=dict(
         type=dataset_type,
-        ann_file=data_root + 'lvis_step1_320_sorted/lvis_v0.5_train_top590_resort.json',
-        img_prefix=data_root + 'images/train2017/',
+        ann_file=data_root + 'lvis_step1_320_sorted/lvis_v0.5_val_top590_resort.json',
+        img_prefix=data_root + 'images/val2017/',
         pipeline=test_pipeline))
-evaluation = dict(interval=5, metric=['bbox', 'segm'])
+evaluation = dict(interval=1, metric=['bbox', 'segm'])
 # optimizer
 optimizer = dict(type='SGD', lr=0.005, momentum=0.9, weight_decay=0.0001)
 optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
