@@ -26,6 +26,7 @@ CAT2LABEL_PATH = './cat2label.tmp'
 
 CLASS_PATH = './data/LVIS/lvis_step1_320_sorted/lvis_classes_qry_step1_rand_balanced.json'
 SAVE_PATH = '/data1/lvis_test1/'
+ALL_DIST_PATH = '/data1/lvis_test1/all.dist'
 SAVE_GT_BOX = False    # change train/test random_flip = 0.0,    epoch = 1， frozen_stages = 3
 SAVE_LOGITS = False    # change train/test random_flip = 0.0,    epoch = 1,    change test date to train set， frozen_stages = 3
 LOAD_GT_DIST = True  # frozen_stages = 3， rcnn.num = 200, dataloader shuffle = True
@@ -61,6 +62,10 @@ class HybridTaskCascade(CascadeRCNN):
         self.class_idx = json.load(open(CLASS_PATH))[rank]
         self.train_iter = 0
         self.cat2label = None
+
+        if LOAD_GT_DIST:
+            self.loaded_gt_dist = torch.load(ALL_DIST_PATH)
+            self.loaded_gt_keys = list(self.loaded_gt_dist.keys())
 
     @property
     def with_semantic(self):
@@ -275,18 +280,14 @@ class HybridTaskCascade(CascadeRCNN):
         # load dist of gt boxes
         if LOAD_GT_DIST:
             self.pred_new_dist = {}
-            self.loaded_gt_dist = {}
             self.is_empty = []
             self.img_idx = []
             for meta, gt_b in zip(img_meta, gt_bboxes):
                 self.img_idx.append(meta['idx'])
                 file_name = meta['filename'].split('/')[-1].split('.')[0]
-                output_file = SAVE_PATH + file_name + '.dist'
-                if os.path.exists(output_file) and (gt_b.shape[0] > 0):
-                    self.loaded_gt_dist[file_name] = torch.load(output_file)
+                if (file_name in self.loaded_gt_keys) and (gt_b.shape[0] > 0):
                     self.is_empty.append(False)
                 else:
-                    self.loaded_gt_dist[file_name] = None
                     self.is_empty.append(True)
 
             if self.cat2label is None:
