@@ -77,10 +77,10 @@ class BaseSampler(metaclass=ABCMeta):
             gt_flags = torch.cat([gt_ones, gt_flags])
 
         if select_label is not None:
-            select_mask = (gt_labels == gt_labels)
+            select_mask = (gt_labels == select_label)
             if (select_mask.sum().item() < 1):
                 print('---------------------- Select Label Not Match -----------------')
-            select_inds = torch.nonzero(select_mask)
+            select_inds = torch.nonzero(select_mask) + 1
             print('select_mask: ', select_mask)
             print('select_inds: ', select_inds)
         else:
