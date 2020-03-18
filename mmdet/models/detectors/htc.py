@@ -20,9 +20,9 @@ def mkdir(path):
             raise
 
 SAVE_PATH = '/data1/lvis_test1/'
-SAVE_GT_BOX = True
-SAVE_LOGITS = True
-LOAD_GT_DIST = False
+SAVE_GT_BOX = False    # change train/test random_flip = 0.0,    epoch = 1， frozen_stages = 3
+SAVE_LOGITS = False    # change train/test random_flip = 0.0,    epoch = 1,    change test date to train set， frozen_stages = 3
+LOAD_GT_DIST = True  # frozen_stages = 3， rcnn.num = 200, dataloader shuffle = True
 PREV_DIM = 270
 
 
