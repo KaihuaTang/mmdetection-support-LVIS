@@ -36,15 +36,15 @@ PREV_DIM = 270
 # 0.0 change CLASS_PATH, SAVE_PATH, ALL_DIST_PATH
 #
 # 1.1 change num_cls, dataset_path, SAVE_GT_BOX=True
-# 1.2 CUDA_VISIBLE_DEVICES=0,1,2,3 PORT=112211 ./tools/dist_train.sh configs/htc/htc_x101_64x4d_fpn_20e_16gpu_0.py 4
+# 1.2 CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 PORT=112211 ./tools/dist_train.sh configs/htc/htc_x101_64x4d_fpn_20e_16gpu_0.py 8
 # 
 # 2.1 change num_cls, dataset_path, SAVE_LOGITS=True
-# 2.2 CUDA_VISIBLE_DEVICES=0,1,2,3 PORT=112222 ./tools/dist_test.sh configs/htc/htc_x101_64x4d_fpn_20e_16gpu_1.py ./work_dirs/270_x64/epoch_20_no_bias.pth 4 --eval bbox segm
+# 2.2 CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 PORT=112222 ./tools/dist_test.sh configs/htc/htc_x101_64x4d_fpn_20e_16gpu_1.py ./work_dirs/270_x64/epoch_20_no_bias.pth 8 --eval bbox segm
 #
 # 3.1 update_checkpoint.py
 # 3.2 merge_dist_files.py
 # 3.3 change num_cls, dataset_path, total_epochs, lr_step, LOAD_GT_DIST=True, PREV_DIM, shuffle=True, datasets/loader/sample.INDECES_PATH
-# 3.4 CUDA_VISIBLE_DEVICES=0,1,2,3 PORT=112233 ./tools/dist_train.sh configs/htc/htc_x101_64x4d_fpn_20e_16gpu_2.py 4 --validate --resume_from ./work_dirs/270_x64/epoch_20_pad.pth
+# 3.4 CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 PORT=112233 ./tools/dist_train.sh configs/htc/htc_x101_64x4d_fpn_20e_16gpu_2.py 8 --validate --resume_from ./work_dirs/270_x64/epoch_20_pad.pth
 ##############################
 
 @DETECTORS.register_module

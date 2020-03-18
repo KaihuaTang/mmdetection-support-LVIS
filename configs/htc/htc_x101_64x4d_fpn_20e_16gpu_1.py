@@ -271,7 +271,7 @@ log_config = dict(
     ])
 # yapf:enable
 # runtime settings
-total_epochs = 21
+total_epochs = 50
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
 work_dir = './work_dirs/htc_x101_64x4d_fpn_20e'
