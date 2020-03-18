@@ -10,6 +10,7 @@ from torch.utils.data import Sampler
 
 
 INDICES_PATH = './data/LVIS/lvis_step1_320_sorted/lvis_indices_qry_step1_rand_balanced.json'
+TOTAL_NUM = 45000
 
 
 class DistributedSampler(_DistributedSampler):
@@ -48,11 +49,11 @@ class DistributedFixSampler(_DistributedSampler):
         print(' --------------------- indices: ', max(max(self.all_indices)) + 1, ' in ', len(self.dataset), ' ------------------------')
         assert max(max(self.all_indices)) + 1 <= len(self.dataset)
 
-        self.num_samples = len(self.all_indices[0])
+        self.num_samples = TOTAL_NUM
 
     def __iter__(self):
         # subsample
-        indices = self.all_indices[self.rank]
+        indices = self.all_indices[self.rank][:TOTAL_NUM]
 
         return iter(indices)
 

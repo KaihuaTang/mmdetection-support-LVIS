@@ -43,7 +43,7 @@ PREV_DIM = 270
 #
 # 3.1 update_checkpoint.py
 # 3.2 merge_dist_files.py
-# 3.3 change num_cls, dataset_path, total_epochs, lr_step, LOAD_GT_DIST=True, PREV_DIM
+# 3.3 change num_cls, dataset_path, total_epochs, lr_step, LOAD_GT_DIST=True, PREV_DIM, shuffle=True, datasets/loader/sample.INDECES_PATHvim
 # 3.4 CUDA_VISIBLE_DEVICES=0,1,2,3 PORT=112233 ./tools/dist_train.sh configs/htc/htc_x101_64x4d_fpn_20e_16gpu_2.py 4 --validate --resume_from ./work_dirs/270_x64/epoch_20_pad.pth
 ##############################
 
@@ -296,9 +296,7 @@ class HybridTaskCascade(CascadeRCNN):
         if LOAD_GT_DIST:
             self.pred_new_dist = {}
             self.is_empty = []
-            self.img_idx = []
             for meta, gt_b in zip(img_meta, gt_bboxes):
-                self.img_idx.append(meta['idx'])
                 file_name = meta['filename'].split('/')[-1].split('.')[0]
                 if (file_name in self.loaded_gt_keys) and (gt_b.shape[0] > 0):
                     self.is_empty.append(False)
@@ -308,11 +306,8 @@ class HybridTaskCascade(CascadeRCNN):
             if self.cat2label is None:
                 self.cat2label = torch.load(CAT2LABEL_PATH)
 
-            if len(self.img_idx) != 1:
-                print('------------ len(self.img_idx) != 1 -------------')
-            else:
-                select_class = self.cat2label[self.class_idx[self.train_iter]]
-                self.train_iter += 1
+            select_class = self.cat2label[self.class_idx[self.train_iter]]
+            self.train_iter += 1
 
         ######################################################
 
@@ -431,12 +426,15 @@ class HybridTaskCascade(CascadeRCNN):
                     for s in range(self.num_stages):
                         distilation_gt_dist.append(self.loaded_gt_dist[file_name][s])
                         distilation_pd_dist.append(self.pred_new_dist[s][i])
-            if len(distilation_gt_dist) > 0:
+            if len(distilation_gt_dist) > 0 :
                 distilation_pd_dist = torch.cat(distilation_pd_dist, dim=0)
                 distilation_gt_dist = torch.cat(distilation_gt_dist, dim=0)[:, 1:].to(distilation_pd_dist.device)
                 distilation_pd_dist = distilation_pd_dist / (distilation_pd_dist.shape[0] + 1e-9)
                 distilation_gt_dist = distilation_gt_dist / (distilation_gt_dist.shape[0] + 1e-9)
-                losses['distill_loss'] = self.distill_loss(distilation_pd_dist, distilation_gt_dist) * self.num_stages
+                if distilation_pd_dist.shape[0] == distilation_gt_dist.shape[0]:
+                    losses['distill_loss'] = self.distill_loss(distilation_pd_dist, distilation_gt_dist) * self.num_stages
+                else:
+                    losses['distill_loss'] = torch.zeros([1]).to(x[0].device)
             else:
                 losses['distill_loss'] = torch.zeros([1]).to(x[0].device)
         ##########################################
