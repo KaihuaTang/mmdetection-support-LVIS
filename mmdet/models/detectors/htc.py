@@ -32,6 +32,12 @@ SAVE_LOGITS = False    # change train/test random_flip = 0.0,    epoch = 1,    c
 LOAD_GT_DIST = True  # frozen_stages = 3， rcnn.num = 200, dataloader shuffle = True
 PREV_DIM = 270
 
+##############################
+# 1.1. change num_cls, dataset_path
+# 1.2. CUDA_VISIBLE_DEVICES=0,1,2,3 PORT=112211 ./tools/dist_train.sh configs/htc/htc_x101_64x4d_fpn_20e_16gpu_0.py 4
+# 
+# 2.1 change num_cls, dataset_path, total_epochs
+# 2.2 
 
 @DETECTORS.register_module
 class HybridTaskCascade(CascadeRCNN):
