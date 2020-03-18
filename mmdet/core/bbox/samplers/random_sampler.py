@@ -46,8 +46,6 @@ class RandomSampler(BaseSampler):
         """Randomly sample some positive samples."""
         if select_inds is not None:
             select_gt_inds = (assign_result.gt_inds.view(-1, 1) == select_inds.view(1, -1)).sum(-1)
-            print('select_gt_inds: ', select_gt_inds)
-            print('assign_result.gt_inds: ', assign_result.gt_inds)
             pos_inds = torch.nonzero( (assign_result.gt_inds > 0) & (select_gt_inds > 0) )
         else:
             pos_inds = torch.nonzero(assign_result.gt_inds > 0)
