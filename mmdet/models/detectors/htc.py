@@ -266,7 +266,9 @@ class HybridTaskCascade(CascadeRCNN):
             self.pred_new_dist = {}
             self.loaded_gt_dist = {}
             self.is_empty = []
+            self.img_idx = []
             for meta, gt_b in zip(img_meta, gt_bboxes):
+                self.img_idx.append(meta['idx'])
                 file_name = meta['filename'].split('/')[-1].split('.')[0]
                 output_file = SAVE_PATH + file_name + '.dist'
                 if os.path.exists(output_file) and (gt_b.shape[0] > 0):
@@ -329,6 +331,7 @@ class HybridTaskCascade(CascadeRCNN):
                     proposal_list[j],
                     gt_bboxes[j],
                     gt_labels[j],
+                    img_idx=self.img_idx,
                     feats=[lvl_feat[j][None] for lvl_feat in x])
                 sampling_results.append(sampling_result)
 
