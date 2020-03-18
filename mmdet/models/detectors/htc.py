@@ -60,7 +60,7 @@ class HybridTaskCascade(CascadeRCNN):
         rank, _ = get_dist_info()
         self.class_idx = json.load(open(CLASS_PATH))[rank]
         self.train_iter = 0
-        self.cat2label = torch.load(CAT2LABEL_PATH)
+        self.cat2label = None
 
     @property
     def with_semantic(self):
@@ -288,6 +288,9 @@ class HybridTaskCascade(CascadeRCNN):
                 else:
                     self.loaded_gt_dist[file_name] = None
                     self.is_empty.append(True)
+
+            if self.cat2label is None:
+                self.cat2label = torch.load(CAT2LABEL_PATH)
 
             if len(self.img_idx) != 1:
                 print('------------ len(self.img_idx) != 1 -------------')

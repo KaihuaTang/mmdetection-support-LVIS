@@ -77,12 +77,19 @@ class BaseSampler(metaclass=ABCMeta):
             gt_flags = torch.cat([gt_ones, gt_flags])
 
         if select_label is not None:
-            print(select_label)
-            print(gt_labels)
+            select_mask = (gt_labels == gt_labels)
+            if (select_mask.sum().item() < 1):
+                print('---------------------- Select Label Not Match -----------------')
+            select_inds = torch.nonzero(select_mask)
+            print('select_mask: ', select_mask)
+            print('select_inds: ', select_inds)
+        else:
+            select_inds = None
+            
 
         num_expected_pos = int(self.num * self.pos_fraction)
         pos_inds = self.pos_sampler._sample_pos(
-            assign_result, num_expected_pos, bboxes=bboxes, **kwargs)
+            assign_result, num_expected_pos, bboxes=bboxes, select_inds=select_inds, **kwargs)
         # We found that sampled indices have duplicated items occasionally.
         # (may be a bug of PyTorch)
         pos_inds = pos_inds.unique()

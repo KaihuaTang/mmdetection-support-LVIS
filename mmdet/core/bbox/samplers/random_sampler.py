@@ -42,8 +42,12 @@ class RandomSampler(BaseSampler):
             rand_inds = rand_inds.cpu().numpy()
         return rand_inds
 
-    def _sample_pos(self, assign_result, num_expected, **kwargs):
+    def _sample_pos(self, assign_result, num_expected, bboxes, select_inds, **kwargs):
         """Randomly sample some positive samples."""
+        if select_inds is not None:
+            select_gt_inds = (assign_result.gt_inds.view(-1, 1) == select_inds.view(1, -1)).sum(-1)
+            print('select_gt_inds: ', select_gt_inds)
+            print('assign_result.gt_inds: ', assign_result.gt_inds)
         pos_inds = torch.nonzero(assign_result.gt_inds > 0)
         if pos_inds.numel() != 0:
             pos_inds = pos_inds.squeeze(1)
