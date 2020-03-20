@@ -31,7 +31,7 @@ SAVE_PATH = '/data1/lvis_test1/'
 ALL_DIST_PATH = '/data1/lvis_test1/all.dist'
 PREV_DIM = 270
 
-SAVE_GT_BOX = True    # phase 1
+SAVE_GT_BOX = False    # phase 1
 SAVE_LOGITS = False     # phase 2
 LOAD_GT_DIST = False      # phase 3
 

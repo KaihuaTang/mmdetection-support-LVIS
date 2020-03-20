@@ -12,7 +12,7 @@ model = dict(
         base_width=4,
         num_stages=4,
         out_indices=(0, 1, 2, 3),
-        frozen_stages=3,
+        frozen_stages=1,
         style='pytorch'),
     neck=dict(
         type='FPN',
@@ -250,9 +250,9 @@ data = dict(
         ann_file=data_root + 'lvis_v0.5_val_top270_resort.json',
         img_prefix=data_root + 'images/val2017/',
         pipeline=test_pipeline))
-evaluation = dict(interval=4, metric=['bbox', 'segm'])
+evaluation = dict(interval=2, metric=['bbox', 'segm'])
 # optimizer
-optimizer = dict(type='SGD', lr=0.001, momentum=0.9, weight_decay=0.0001)
+optimizer = dict(type='SGD', lr=0.01, momentum=0.9, weight_decay=0.0001)
 optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
 # learning policy
 lr_config = dict(
@@ -260,7 +260,7 @@ lr_config = dict(
     warmup='linear',
     warmup_iters=500,
     warmup_ratio=1.0 / 3,
-    step=[21, 23])
+    step=[23, 25])
 checkpoint_config = dict(interval=1)
 # yapf:disable
 log_config = dict(
@@ -271,7 +271,7 @@ log_config = dict(
     ])
 # yapf:enable
 # runtime settings
-total_epochs = 24
+total_epochs = 26
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
 work_dir = './work_dirs/htc_x101_64x4d_fpn_20e'
