@@ -24,16 +24,16 @@ def mkdir(path):
 
 CAT2LABEL_PATH = './cat2label.tmp'
 
-TOTAL_NUM = 45000   # number of iter for stage 3 (LOAD_GT_DIST)
+TOTAL_NUM = 45000   # number of iter for phase 3 (LOAD_GT_DIST)
 INDICES_PATH = './data/LVIS/lvis_step1_320_sorted/lvis_indices_qry_step1_rand_balanced.json'
 CLASS_PATH = './data/LVIS/lvis_step1_320_sorted/lvis_classes_qry_step1_rand_balanced.json'
 SAVE_PATH = '/data1/lvis_test1/'
 ALL_DIST_PATH = '/data1/lvis_test1/all.dist'
 PREV_DIM = 270
 
-SAVE_GT_BOX = True    # change train/test random_flip = 0.0,    epoch = 1， frozen_stages = 3
-SAVE_LOGITS = False     # change train/test random_flip = 0.0,    epoch = 1,    change test date to train set， frozen_stages = 3
-LOAD_GT_DIST = False  # frozen_stages = 3， rcnn.num = 200, dataloader shuffle = True
+SAVE_GT_BOX = True    # phase 1
+SAVE_LOGITS = False     # phase 2
+LOAD_GT_DIST = False      # phase 3
 
 
 ##############################
