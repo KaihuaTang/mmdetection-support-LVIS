@@ -7,10 +7,7 @@ import json
 from mmcv.runner import get_dist_info
 from torch.utils.data import DistributedSampler as _DistributedSampler
 from torch.utils.data import Sampler
-
-
-INDICES_PATH = './data/LVIS/lvis_step1_320_sorted/lvis_indices_qry_step1_rand_balanced.json'
-TOTAL_NUM = 45000
+from ...models.detectors.htc import INDICES_PATH, TOTAL_NUM
 
 
 class DistributedSampler(_DistributedSampler):

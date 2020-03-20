@@ -81,6 +81,7 @@ class ConvFCBBoxHead(BBoxHead):
             out_dim_reg = (4 if self.reg_class_agnostic else 4 *
                            self.num_classes)
             self.fc_reg = nn.Linear(self.reg_last_dim, out_dim_reg)
+        self.scale_cls = nn.Parameter(torch.FloatTensor(1).fill_(10.0), requires_grad=True)
 
     def _add_conv_fc_branch(self,
                             num_branch_convs,
@@ -156,7 +157,7 @@ class ConvFCBBoxHead(BBoxHead):
                 x_cls = self.avg_pool(x_cls)
             x_cls = x_cls.flatten(1)
         for fc in self.cls_fcs:
-            x_cls = self.relu(fc(x_cls))
+            x_cls = fc(x_cls)
 
         for conv in self.reg_convs:
             x_reg = conv(x_reg)
@@ -170,8 +171,9 @@ class ConvFCBBoxHead(BBoxHead):
         if norm_on:
             norm_x_cls = F.normalize(x_cls, p=2, dim=-1, eps=1e-12)
             norm_cls_weights = F.normalize(self.fc_cls.weight, p=2, dim=-1, eps=1e-12)
-            cls_score = torch.mm(norm_x_cls, norm_cls_weights.transpose(0, 1))
+            cls_score = torch.mm(norm_x_cls, norm_cls_weights.transpose(0, 1)) * self.scale_cls
         else:
+            x_cls = self.relu(x_cls)
             cls_score = self.fc_cls(x_cls) if self.with_cls else None
         bbox_pred = self.fc_reg(x_reg) if self.with_reg else None
         return cls_score, bbox_pred

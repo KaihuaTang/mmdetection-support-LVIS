@@ -24,26 +24,30 @@ def mkdir(path):
 
 CAT2LABEL_PATH = './cat2label.tmp'
 
+TOTAL_NUM = 45000   # number of iter for stage 3 (LOAD_GT_DIST)
+INDICES_PATH = './data/LVIS/lvis_step1_320_sorted/lvis_indices_qry_step1_rand_balanced.json'
 CLASS_PATH = './data/LVIS/lvis_step1_320_sorted/lvis_classes_qry_step1_rand_balanced.json'
 SAVE_PATH = '/data1/lvis_test1/'
 ALL_DIST_PATH = '/data1/lvis_test1/all.dist'
-SAVE_GT_BOX = False    # change train/test random_flip = 0.0,    epoch = 1， frozen_stages = 3
-SAVE_LOGITS = True     # change train/test random_flip = 0.0,    epoch = 1,    change test date to train set， frozen_stages = 3
-LOAD_GT_DIST = False  # frozen_stages = 3， rcnn.num = 200, dataloader shuffle = True
 PREV_DIM = 270
 
+SAVE_GT_BOX = True    # change train/test random_flip = 0.0,    epoch = 1， frozen_stages = 3
+SAVE_LOGITS = False     # change train/test random_flip = 0.0,    epoch = 1,    change test date to train set， frozen_stages = 3
+LOAD_GT_DIST = False  # frozen_stages = 3， rcnn.num = 200, dataloader shuffle = True
+
+
 ##############################
-# 0.0 change CLASS_PATH, SAVE_PATH, ALL_DIST_PATH
+# 0.0 change INDICES_PATH, CLASS_PATH, SAVE_PATH, ALL_DIST_PATH, PREV_DIM
 #
-# 1.1 change num_cls, dataset_path, SAVE_GT_BOX=True
+# 1.1 (1) change (num_classes=num_old + 320, ann_file, img_prefix) in htc_x101_64x4d_fpn_20e_16gpu_0.py; (2) SAVE_GT_BOX=True
 # 1.2 CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 PORT=112211 ./tools/dist_train.sh configs/htc/htc_x101_64x4d_fpn_20e_16gpu_0.py 8
 # 
-# 2.1 change num_cls, dataset_path, SAVE_LOGITS=True
+# 2.1 (1) change (num_classes=num_old, ann_file, img_prefix) in htc_x101_64x4d_fpn_20e_16gpu_1.py; (2) SAVE_LOGITS=True
 # 2.2 CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 PORT=112222 ./tools/dist_test.sh configs/htc/htc_x101_64x4d_fpn_20e_16gpu_1.py ./work_dirs/270_x64/epoch_20_no_bias.pth 8 --eval bbox segm
 #
-# 3.1 update_checkpoint.py
-# 3.2 merge_dist_files.py
-# 3.3 change num_cls, dataset_path, total_epochs, lr_step, LOAD_GT_DIST=True, PREV_DIM, shuffle=True, datasets/loader/sample.INDECES_PATH
+# 3.1 update_checkpoint.py  to expand weight from old_dim -> old + 320 
+# 3.2 merge_dist_files.py   to merge all generated distill logits
+# 3.3 (1) change (num_classes=num_old + 320, ann_file, img_prefix, total_epochs+1, step + 20k/35k) in htc_x101_64x4d_fpn_20e_16gpu_2.py; (2) LOAD_GT_DIST=True, 
 # 3.4 CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 PORT=112233 ./tools/dist_train.sh configs/htc/htc_x101_64x4d_fpn_20e_16gpu_2.py 8 --validate --resume_from ./work_dirs/270_x64/epoch_20_pad.pth
 ##############################
 
@@ -434,8 +438,10 @@ class HybridTaskCascade(CascadeRCNN):
                 if distilation_pd_dist.shape[0] == distilation_gt_dist.shape[0]:
                     losses['distill_loss'] = self.distill_loss(distilation_pd_dist, distilation_gt_dist) * self.num_stages
                 else:
+                    print('distill loss: gt vs. pred size not match')
                     losses['distill_loss'] = torch.zeros([1]).to(x[0].device)
             else:
+                print('distill loss: gt missing')
                 losses['distill_loss'] = torch.zeros([1]).to(x[0].device)
         ##########################################
 

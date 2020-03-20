@@ -12,6 +12,8 @@ from mmdet.core import (DistEvalHook, DistOptimizerHook, Fp16OptimizerHook,
 from mmdet.datasets import build_dataloader
 from mmdet.utils import get_root_logger
 
+from ..models.detectors.htc import LOAD_GT_DIST
+
 
 def set_random_seed(seed, deterministic=False):
     """Set random seed.
@@ -126,7 +128,7 @@ def _dist_train(model,
             cfg.data.imgs_per_gpu,
             cfg.data.workers_per_gpu,
             dist=True,
-            shuffle=False,
+            shuffle=LOAD_GT_DIST,
             seed=cfg.seed) for ds in dataset
     ]
     # put model on gpus
