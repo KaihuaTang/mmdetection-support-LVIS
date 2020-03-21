@@ -53,9 +53,10 @@ def check_optimizer_new_dimension(checkpoint):
         if (len(val.shape) >= 1) and (val.shape[0] == OLD_DIM + PAD_DIM):
             print('new: ', key, ' : ', val.shape)
 
-check_optimizer_dimension(old_checkpoint)
-update_optimizer_state(old_checkpoint)
-check_optimizer_new_dimension(old_checkpoint)
+#check_optimizer_dimension(old_checkpoint)
+#update_optimizer_state(old_checkpoint)
+#check_optimizer_new_dimension(old_checkpoint)
 
+old_checkpoint.pop('optimizer')
 
 torch.save(old_checkpoint, new_path)
