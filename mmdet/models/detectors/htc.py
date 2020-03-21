@@ -127,7 +127,7 @@ class HybridTaskCascade(CascadeRCNN):
             gt_len = [len(b) for b in gt_bboxes]
             gt_bbox_feats = bbox_roi_extractor(x[:bbox_roi_extractor.num_inputs],
                                         gt_rois)
-            gt_cls_score, _ = bbox_head(gt_bbox_feats, norm_on=True)
+            gt_cls_score, _ = bbox_head(gt_bbox_feats, norm_on=True, scale=False)
             self.pred_new_dist[stage] = gt_cls_score[:,1:PREV_DIM+1].split(gt_len, dim=0)
         #########################################################
 
@@ -189,7 +189,7 @@ class HybridTaskCascade(CascadeRCNN):
        
         ##############################################################
         if SAVE_LOGITS:
-            cls_score, bbox_pred = bbox_head(bbox_feats, norm_on=True)
+            cls_score, bbox_pred = bbox_head(bbox_feats, norm_on=True, scale=False)
             self.output_logits_dict[stage] = cls_score.split(self.gt_length, dim=0)
         else:
             cls_score, bbox_pred = bbox_head(bbox_feats, norm_on=True)
@@ -433,10 +433,8 @@ class HybridTaskCascade(CascadeRCNN):
             if len(distilation_gt_dist) > 0 :
                 distilation_pd_dist = torch.cat(distilation_pd_dist, dim=0)
                 distilation_gt_dist = torch.cat(distilation_gt_dist, dim=0)[:, 1:].to(distilation_pd_dist.device)
-                distilation_pd_dist = distilation_pd_dist / (distilation_pd_dist.shape[0] + 1e-9)
-                distilation_gt_dist = distilation_gt_dist / (distilation_gt_dist.shape[0] + 1e-9)
                 if distilation_pd_dist.shape[0] == distilation_gt_dist.shape[0]:
-                    losses['distill_loss'] = self.distill_loss(distilation_pd_dist, distilation_gt_dist) * self.num_stages
+                    losses['distill_loss'] = self.distill_loss(distilation_pd_dist, distilation_gt_dist) * self.num_stages / (distilation_pd_dist.shape[0] + 1e-9)
                 else:
                     print('distill loss: gt vs. pred size not match')
                     losses['distill_loss'] = torch.zeros([1]).to(x[0].device)

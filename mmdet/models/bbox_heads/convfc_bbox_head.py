@@ -132,7 +132,7 @@ class ConvFCBBoxHead(BBoxHead):
                     nn.init.xavier_uniform_(m.weight)
                     nn.init.constant_(m.bias, 0)
 
-    def forward(self, x, norm_on=False):
+    def forward(self, x, norm_on=False, scale=True):
         # shared part
         if self.num_shared_convs > 0:
             for conv in self.shared_convs:
@@ -171,7 +171,10 @@ class ConvFCBBoxHead(BBoxHead):
         if norm_on:
             norm_x_cls = F.normalize(x_cls, p=2, dim=-1, eps=1e-12)
             norm_cls_weights = F.normalize(self.fc_cls.weight, p=2, dim=-1, eps=1e-12)
-            cls_score = torch.mm(norm_x_cls, norm_cls_weights.transpose(0, 1)) * self.scale_cls
+            if scale:
+                cls_score = torch.mm(norm_x_cls, norm_cls_weights.transpose(0, 1)) * self.scale_cls
+            else:
+                cls_score = torch.mm(norm_x_cls, norm_cls_weights.transpose(0, 1))
         else:
             x_cls = self.relu(x_cls)
             cls_score = self.fc_cls(x_cls) if self.with_cls else None
