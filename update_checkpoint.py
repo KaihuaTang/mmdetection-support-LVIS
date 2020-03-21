@@ -15,11 +15,9 @@ def check_dimension(checkpoint):
 def update_state_dict(checkpoint):
     for key, val in old_checkpoint['state_dict'].items():
         if (len(val.shape) >= 1) and (val.shape[0] == OLD_DIM):
-            mean = val.mean().item()
-            std = val.std().item()
             pad_shape = list(val.shape)
             pad_shape[0] = PAD_DIM
-            pad_tensor = torch.zeros(pad_shape).normal_(mean=mean, std=std).to(val.device)
+            pad_tensor = torch.zeros(pad_shape).normal_(mean=0, std=0.01).to(val.device)
             old_checkpoint['state_dict'][key] = torch.cat([val, pad_tensor], dim=0)
 
 def check_new_dimension(checkpoint):
@@ -44,11 +42,9 @@ def update_optimizer_state(checkpoint):
     for key, val in old_checkpoint['optimizer']['state'].items():
         val = val['momentum_buffer']
         if (len(val.shape) >= 1) and (val.shape[0] == OLD_DIM):
-            mean = val.mean().item()
-            std = val.std().item()
             pad_shape = list(val.shape)
             pad_shape[0] = PAD_DIM
-            pad_tensor = torch.zeros(pad_shape).normal_(mean=mean, std=std).to(val.device)
+            pad_tensor = torch.zeros(pad_shape).normal_(mean=0, std=0.01).to(val.device)
             old_checkpoint['optimizer']['state'][key]['momentum_buffer'] = torch.cat([val, pad_tensor], dim=0)
 
 def check_optimizer_new_dimension(checkpoint):
