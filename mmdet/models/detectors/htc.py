@@ -43,7 +43,7 @@ LOAD_GT_DIST = False      # phase 3
 # 1.2 CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 PORT=112211 ./tools/dist_train.sh configs/htc/htc_x101_64x4d_fpn_20e_16gpu_0.py 8
 # 
 # 2.1 (1) change (num_classes=num_old, ann_file, img_prefix) in htc_x101_64x4d_fpn_20e_16gpu_1.py; (2) SAVE_LOGITS=True
-# 2.2 CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 PORT=112222 ./tools/dist_test.sh configs/htc/htc_x101_64x4d_fpn_20e_16gpu_1.py ./work_dirs/270_x64/epoch_20_no_bias.pth 8 --eval bbox segm
+# 2.2 CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 PORT=112222 ./tools/dist_test.sh configs/htc/htc_x101_64x4d_fpn_20e_16gpu_1.py ./work_dirs/270_x64/epoch_20_no_bias.pth 8 --out ./work_dirs/stage2_tmp/tmp.pkl --eval bbox segm
 # 2.3 merge_dist_files.py  automatically merge all generated distill logits
 #
 # 3.1 update_checkpoint.py (need to change top 4 parameters in the file)  to expand weight from old_dim -> old + 320 
