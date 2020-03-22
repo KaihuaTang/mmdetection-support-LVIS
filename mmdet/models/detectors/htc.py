@@ -24,7 +24,7 @@ def mkdir(path):
 
 CAT2LABEL_PATH = './cat2label.tmp'
 
-TOTAL_NUM = 45000   # number of iter for phase 3 (LOAD_GT_DIST)
+TOTAL_NUM = 50000   # number of iter for phase 3 (LOAD_GT_DIST)
 INDICES_PATH = './data/LVIS/lvis_step1_320_sorted/lvis_indices_qry_step1_rand_balanced.json'
 CLASS_PATH = './data/LVIS/lvis_step1_320_sorted/lvis_classes_qry_step1_rand_balanced.json'
 SAVE_PATH = '/data1/lvis_test1/'
