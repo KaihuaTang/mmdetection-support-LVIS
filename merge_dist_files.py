@@ -1,7 +1,7 @@
 import os
 import torch
 import json
-from .mmdet.models.detectors.htc import SAVE_PATH, ALL_DIST_PATH
+from mmdet.models.detectors.htc import SAVE_PATH, ALL_DIST_PATH
 
 path = SAVE_PATH
 output_path = ALL_DIST_PATH
