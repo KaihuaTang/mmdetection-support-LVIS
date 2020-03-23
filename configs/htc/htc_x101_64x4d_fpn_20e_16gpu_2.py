@@ -250,7 +250,7 @@ data = dict(
         ann_file=data_root + 'lvis_step1_320_sorted/lvis_v0.5_val_top590_resort.json',
         img_prefix=data_root + 'images/val2017/',
         pipeline=test_pipeline))
-evaluation = dict(interval=1, metric=['bbox', 'segm'])
+evaluation = dict(interval=2, metric=['bbox', 'segm'])
 # optimizer
 optimizer = dict(type='SGD', lr=0.005, momentum=0.9, weight_decay=0.0001)
 optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
@@ -261,7 +261,7 @@ lr_config = dict(
     warmup='linear',
     warmup_iters=500,
     warmup_ratio=1.0 / 3,
-    step=[141290, 141340])
+    step=[222248, 237248])
 checkpoint_config = dict(interval=1)
 # yapf:disable
 log_config = dict(
@@ -272,7 +272,7 @@ log_config = dict(
     ])
 # yapf:enable
 # runtime settings
-total_epochs = 21
+total_epochs = 40
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
 work_dir = './work_dirs/htc_x101_64x4d_fpn_20e'

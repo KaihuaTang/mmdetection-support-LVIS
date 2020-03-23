@@ -45,13 +45,24 @@ class DistributedFixSampler(_DistributedSampler):
         #assert len(self.all_indices) == self.num_replicas
         print(' --------------------- indices: ', max(max(self.all_indices)) + 1, ' in ', len(self.dataset), ' ------------------------')
         assert max(max(self.all_indices)) + 1 <= len(self.dataset)
+        self.max_length_custom = len(self.all_indices[0])
 
         self.num_samples = TOTAL_NUM
+        self.iter_count_custom = 0
 
     def __iter__(self):
         # subsample
-        indices = self.all_indices[self.rank][:TOTAL_NUM]
+        stt = self.iter_count_custom * TOTAL_NUM
+        end = (self.iter_count_custom + 1) * TOTAL_NUM
+        if stt >= self.max_length_custom or end >= self.max_length_custom:
+            stt = 0
+            end = TOTAL_NUM
+            print('Restart counting sampling iterations')
+            self.iter_count_custom = 0
+        print('Current sampling iteration is : ', self.iter_count_custom)
+        indices = self.all_indices[self.rank][stt:end]
 
+        self.iter_count_custom += 1
         return iter(indices)
 
 
